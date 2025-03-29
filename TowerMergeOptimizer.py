@@ -7,7 +7,7 @@ import pulp
 def load_data():
     df_flak = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Flak.csv")
     df_cosmic = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Cosmic.csv")
-    df_crystal = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/blob/main/Data_Crystal.csv")
+    df_crystal = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Crystal.csv")
     df_lumber = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Lumbertower.csv")
     return df_flak, df_cosmic, df_crystal, df_lumber
 
