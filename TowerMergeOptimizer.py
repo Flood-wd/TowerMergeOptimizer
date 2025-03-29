@@ -26,7 +26,7 @@ def optimize_merge(tower_type, initial_level, target_level):
     """
     # 使用するタワーデータを選択
     if tower_type == "Cosmic/Oculus":
-    df_target = df_cosmic_oculus
+        df_target = df_cosmic_oculus
     elif tower_type == "Crystal/Pylon":
         df_target = df_crystal_pylon
     elif tower_type == "Volt":
