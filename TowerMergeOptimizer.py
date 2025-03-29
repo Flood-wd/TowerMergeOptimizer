@@ -5,10 +5,10 @@ import pulp
 # --- CSVデータの読み込み ---
 @st.cache_data
 def load_data():
-    df_flak = pd.read_csv("/Users/ohmizutakashi/Downloads/Data_Flak.csv")
-    df_cosmic = pd.read_csv("/Users/ohmizutakashi/Downloads/Data_Cosmic.csv")
-    df_crystal = pd.read_csv("/Users/ohmizutakashi/Downloads/Data_Crystal.csv")
-    df_lumber = pd.read_csv("/Users/ohmizutakashi/Downloads/Data_Lumbertower.csv")
+    df_flak = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Flak.csv")
+    df_cosmic = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Cosmic.csv")
+    df_crystal = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/blob/main/Data_Crystal.csv")
+    df_lumber = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Lumbertower.csv")
     return df_flak, df_cosmic, df_crystal, df_lumber
 
 df_flak, df_cosmic, df_crystal, df_lumber = load_data()
