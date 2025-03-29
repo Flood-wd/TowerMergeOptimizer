@@ -14,13 +14,14 @@ def load_data():
 df_flak, df_cosmic, df_crystal, df_lumber = load_data()
 
 # --- 最適化関数 ---
-def optimize_merge(tower_type, initial_level, target_level):
+def optimize_merge(tower_type, initial_level, target_level, max_num):
     """
     タワーの統合を最適化し、必要なタワーの組み合わせを計算
     
     :param tower_type: "Cosmic", "Crystal", または "Lumber"
     :param initial_level: 現在のタワーレベル
     :param target_level: 目標タワーレベル
+    :param max_num: 統合に使用するタワーの最大数
     """
     # 使用するタワーデータを選択
     if tower_type.lower() == "cosmic":
@@ -61,7 +62,7 @@ def optimize_merge(tower_type, initial_level, target_level):
     # 制約2: XPが統合前より多いこと
     model += pulp.lpSum([tower_vars[(level, t_type)] * df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['XP_culmative'].values[0] for level, t_type in tower_levels]) >= required_xp
     
-    # 制約3: 使用するタワーは最大12個
+    # 制約3: 使用するタワーは最大数 max_num 個
     model += pulp.lpSum([tower_vars[(level, t_type)] for level, t_type in tower_levels]) <= max_num
     
     # 最適化の実行
@@ -91,6 +92,7 @@ def optimize_merge(tower_type, initial_level, target_level):
     })
     
     return tower_output, resource_comparison
+
 # --- Streamlit UI ---
 st.title("タワーマージ最適化ツール")
 
@@ -99,8 +101,11 @@ tower_type = st.selectbox("タワーの種類を選択", ["Cosmic", "Crystal", "
 initial_level = st.number_input("現在のレベル", min_value=10, step=1)
 target_level = st.number_input("目標レベル", min_value=11, step=1)
 
+# ユーザーに最大タワー数を指定させる
+max_num = st.number_input("統合に使用するタワーの最大数", min_value=1, max_value=50, value=12, step=1)
+
 if st.button("最適化を実行"):
-    tower_output, resource_comparison = optimize_merge(tower_type, initial_level, target_level)
+    tower_output, resource_comparison = optimize_merge(tower_type, initial_level, target_level, max_num)
     
     st.subheader("最適なタワーの組み合わせ")
     st.text(tower_output)
