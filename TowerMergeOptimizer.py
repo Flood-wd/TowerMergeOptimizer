@@ -25,17 +25,17 @@ def optimize_merge(tower_type, initial_level, target_level):
     :param target_level: 目標タワーレベル
     """
     # 使用するタワーデータを選択
-    if tower_type.lower() == "Cosmic/Oculus":
+    if tower_type.lower() == "cosmic/culus":
         df_target = df_cosmic_oculus
-    elif tower_type.lower() == "Crystal/Pylon":
+    elif tower_type.lower() == "crystal/pylon":
         df_target = df_crystal_pylon
-    elif tower_type.lower() == "Volt":
+    elif tower_type.lower() == "volt":
         df_target = df_volt
-    elif tower_type.lower() == "Archmage":
+    elif tower_type.lower() == "archmage":
         df_target = df_archmage
-    elif tower_type.lower() == "Flak":
+    elif tower_type.lower() == "flak":
         df_target = df_flak
-    elif tower_type.lower() == "Mage/Lightning":
+    elif tower_type.lower() == "mage/lightning":
         df_target = df_mage_lightning
     else:
         raise ValueError("tower_type must be one of 'Cosmic/Oculus', 'Crystal/Pylon', 'Volt', 'ArchMage', 'Flak', 'Mage/Lightning'")
