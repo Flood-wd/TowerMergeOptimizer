@@ -5,30 +5,30 @@ import pulp
 # --- CSVデータの読み込み ---
 @st.cache_data
 def load_data():
-    df_cosmic = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Cosmic:Oculus.csv")
-    df_crystal = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Crystal:Pylon.csv")
+    df_cosmic_oculus = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Cosmic:Oculus.csv")
+    df_crystal_pylon = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Crystal:Pylon.csv")
     df_volt = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Volt.csv")
     df_archmage = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_ArchMage.csv")
     df_flak = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Flak.csv")
     df_mage_lightning = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_Mage:Lightning.csv")
-    return df_cosmic, df_crystal, df_volt, df_archmage, df_flak, df_mage_lightning
+    return df_cosmic_oculus, df_crystal_pylon, df_volt, df_archmage, df_flak, df_mage_lightning
 
-df_cosmic, df_crystal, df_volt, df_archmage, df_flak, df_mage_lightning = load_data()
+df_cosmic_oculus, df_crystal_pylon, df_volt, df_archmage, df_flak, df_mage_lightning = load_data()
 
 # --- 最適化関数 ---
-def optimize_merge(tower_type, initial_level, target_level, max_num):
+def optimize_merge(tower_type, initial_level, target_level):
     """
     タワーの統合を最適化し、必要なタワーの組み合わせを計算
     
-    :param tower_type: "Cosmic", "Crystal", "Volt", "ArchMage", "Flak", "Mage/Lightning"
+    :param tower_type: "Cosmic/Oculus", "Crystal/Pylon", "Volt", "ArchMage", "Flak", "Mage/Lightning"
     :param initial_level: 現在のタワーレベル
     :param target_level: 目標タワーレベル
     """
     # 使用するタワーデータを選択
-    if tower_type.lower() == "cosmic":
-        df_target = df_cosmic
-    elif tower_type.lower() == "crystal":
-        df_target = df_crystal
+    if tower_type.lower() == "cosmic/oculus":
+        df_target = df_cosmic_oculus
+    elif tower_type.lower() == "crystal/pylon":
+        df_target = df_crystal_pylon
     elif tower_type.lower() == "volt":
         df_target = df_volt
     elif tower_type.lower() == "archmage":
@@ -38,7 +38,7 @@ def optimize_merge(tower_type, initial_level, target_level, max_num):
     elif tower_type.lower() == "mage/lightning":
         df_target = df_mage_lightning
     else:
-        raise ValueError("tower_type must be one of 'Cosmic', 'Crystal', 'Volt', 'ArchMage', 'Flak', or 'Mage/Lightning'")
+        raise ValueError("tower_type must be one of 'Cosmic/Oculus', 'Crystal/Pylon', 'Volt', 'ArchMage', 'Flak', 'Mage/Lightning'")
     
     # 目標レベルのrubbleとXPを取得
     target_rubble = df_target[df_target['level'] == target_level]['culmative_rubble'].values[0]
@@ -104,13 +104,12 @@ def optimize_merge(tower_type, initial_level, target_level, max_num):
 st.title("タワーマージ最適化ツール")
 
 # ユーザー入力
-tower_type = st.selectbox("タワーの種類を選択", ["Cosmic", "Crystal", "Volt", "ArchMage", "Flak", "Mage/Lightning"])
+tower_type = st.selectbox("タワーの種類を選択", ["Cosmic/Oculus", "Crystal/Pylon", "Volt", "ArchMage", "Flak", "Mage/Lightning"])
 initial_level = st.number_input("現在のレベル", min_value=10, step=1)
 target_level = st.number_input("目標レベル", min_value=11, step=1)
-max_num = st.number_input("使用するタワーの最大数", min_value=1, step=1)
 
 if st.button("最適化を実行"):
-    tower_output, resource_comparison = optimize_merge(tower_type, initial_level, target_level, max_num)
+    tower_output, resource_comparison = optimize_merge(tower_type, initial_level, target_level)
     
     st.subheader("最適なタワーの組み合わせ")
     st.text(tower_output)
