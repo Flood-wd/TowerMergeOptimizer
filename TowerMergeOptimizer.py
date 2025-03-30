@@ -16,7 +16,7 @@ def load_data():
 df_cosmic_oculus, df_crystal_pylon, df_volt, df_archmage, df_flak, df_mage_lightning = load_data()
 
 # --- 最適化関数 ---
-def optimize_merge(tower_type, initial_level, target_level):
+def optimize_merge(tower_type, initial_level, target_level, max_num):
     """
     タワーの統合を最適化し、必要なタワーの組み合わせを計算
     
@@ -107,9 +107,10 @@ st.title("タワーマージ最適化ツール")
 tower_type = st.selectbox("タワーの種類を選択", [ "Cosmic/Oculus", "Crystal/Pylon", "Volt", "ArchMage", "Flak", "Mage/Lightning"])
 initial_level = st.number_input("現在のレベル", min_value=10, step=1)
 target_level = st.number_input("目標レベル", min_value=11, step=1)
+max_num = st.number_input("最大使用タワー数", min_value=1, max_value=20, value=12)
 
 if st.button("最適化を実行"):
-    tower_output, resource_comparison = optimize_merge(tower_type, initial_level, target_level)
+    tower_output, resource_comparison = optimize_merge(tower_type, initial_level, target_level, max_num)
     
     st.subheader("最適なタワーの組み合わせ")
     st.text(tower_output)
