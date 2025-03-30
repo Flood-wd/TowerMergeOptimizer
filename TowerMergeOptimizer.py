@@ -160,11 +160,14 @@ def optimize_levelup_combined(tower_type, initial_level, target_level, max_num, 
                 best_merge_plan = merge_plan
                 best_direct_time1 = time_direct1
                 best_direct_time2 = time_direct2
-                best_plan = f"【プラン候補】\n" \
-                            f"① 直接レベルアップ：初期レベル {initial_level} から中間レベル {m} まで → 時間: {time_direct1:.2f} days\n" \
-                            + (f"② 統合による補填：中間レベル {m} から {n} へ merge を実施 → 所要時間: {merge_time:.2f} days\n統合内容:\n{merge_plan}\n" if n > m else "② 統合による補填：不要（直接レベルアップのみ）\n") \
-                            f"③ 直接レベルアップ：中間レベル {n} から目標レベル {target_level} まで → 時間: {time_direct2:.2f} days\n" \
-                            f"総所要時間: {total_time:.2f} days"
+                best_plan = (
+                    f"【プラン候補】\n"
+                    f"① 直接レベルアップ：初期レベル {initial_level} から中間レベル {m} まで → 時間: {time_direct1:.2f} days\n"
+                    + (f"② 統合による補填：中間レベル {m} から {n} へ merge を実施 → 所要時間: {merge_time:.2f} days\n統合内容:\n{merge_plan}\n"
+                    if n > m else "② 統合による補填：不要（直接レベルアップのみ）\n")
+                    + f"③ 直接レベルアップ：中間レベル {n} から目標レベル {target_level} まで → 時間: {time_direct2:.2f} days\n"
+                    + f"総所要時間: {total_time:.2f} days"
+                )
     
     if best_plan is None:
         return "エンバー上限の条件内でのプランが見つかりません！", pd.DataFrame()
