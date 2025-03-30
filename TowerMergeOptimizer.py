@@ -101,13 +101,13 @@ def optimize_merge(tower_type, initial_level, target_level, max_num):
     return tower_output, resource_comparison
 
 # --- Streamlit UI ---
-st.title("タワーマージ最適化ツール")
+st.title("Tower Merge Optimizer")
 
 # ユーザー入力
 tower_type = st.selectbox("タワーの種類を選択", [ "Cosmic/Oculus", "Crystal/Pylon", "Volt", "ArchMage", "Flak", "Mage/Lightning"])
 initial_level = st.number_input("現在のレベル", min_value=10, step=1)
 target_level = st.number_input("目標レベル", min_value=11, step=1)
-max_num = st.number_input("最大使用タワー数", min_value=1, max_value=20, value=12)
+max_num = st.number_input("最大使用タワー数", min_value=1, max_value=50, value=12)
 
 if st.button("最適化を実行"):
     tower_output, resource_comparison = optimize_merge(tower_type, initial_level, target_level, max_num)
