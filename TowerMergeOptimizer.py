@@ -26,8 +26,8 @@ def merge_optimization(required_rubble, required_xp, max_num, ember_limit, df_me
     :param max_num: 最大使用タワー数
     :param ember_limit: エンバー上限（0なら上限なし）
     :param df_merge_candidates: マージ候補のデータ（FlakとMage/Lightning）
-    :return: (merging_plan_text, total_merge_time)
-             解が得られなければ ("エンバーが足りません！", None) を返す。
+    :return: (merging_plan_text, total_merge_time, selected_towers)
+             制約内で解が得られなければ ("エンバーが足りません！", None, None) を返す。
     """
     model = pulp.LpProblem("MergeOptimization", pulp.LpMinimize)
     
@@ -69,7 +69,7 @@ def merge_optimization(required_rubble, required_xp, max_num, ember_limit, df_me
     model.solve(pulp.PULP_CBC_CMD(mip=True))
     
     if pulp.LpStatus[model.status] != "Optimal":
-        return "エンバーが足りません！", None
+        return "エンバーが足りません！", None, None
     
     selected_towers = {
         (level, t_type): int(tower_vars[(level, t_type)].varValue)
@@ -83,19 +83,19 @@ def merge_optimization(required_rubble, required_xp, max_num, ember_limit, df_me
         for (level, t_type) in selected_towers
     )
     
-    return merging_plan, total_merge_time
+    return merging_plan, total_merge_time, selected_towers
 
 # --- 直接レベルアップ＋統合＋再度直接レベルアップを組み合わせた最適化関数 ---
 def optimize_levelup_combined(tower_type, initial_level, target_level, max_num, ember_limit):
     """
     直接レベルアップとmerge（統合）を組み合わせた最適化を実施する。
-    プランは以下の2段階または3段階の組み合わせを検討する：
-      ① 初期レベルから中間レベル m まで直接レベルアップし、
-         その後 merge を用いて m から n まで統合し、さらに直接レベルアップで n から目標レベルに到達
-         （m < nの場合）
-      ② あるいは、純粋に直接レベルアップのみ（m = n = target_level）
-    すべての (m, n) 組み合わせ（initial_level ≤ m ≤ n ≤ target_level）について総所要時間を算出し、
-    最も時間が短いプランを採用します。
+    プランは以下の3段階の組み合わせを検討する：
+      ① 直接レベルアップ：初期レベルから中間レベル m まで
+      ② 統合：mから n まで merge によって補填
+      ③ 直接レベルアップ：nから目標レベルまで
+    m, n の全組み合わせ（initial_level ≤ m ≤ n ≤ target_level）について総所要時間を算出し、
+    最も総時間が短いプランを採用する。
+    なお、直接レベルアップの所要時間が0の場合はその部分は出力しません。
     
     :return: (plan_text, resource_comparison DataFrame)
     """
@@ -115,77 +115,87 @@ def optimize_levelup_combined(tower_type, initial_level, target_level, max_num, 
     else:
         raise ValueError("tower_type must be one of 'Cosmic/Oculus', 'Crystal/Pylon', 'Volt', 'ArchMage', 'Flak', 'Mage/Lightning'")
     
-    # 関連する直接レベルアップの時間と資源（df_target）を利用
-    # df_targetにおける各レベルの情報を辞書で簡単にアクセスできるようにする
+    # 各レベルの情報を辞書化（アクセスしやすくするため）
     target_info = {row['level']: row for _, row in df_target.iterrows()}
     
-    # マージ候補：FlakおよびMage/Lightning
+    # マージ候補：FlakおよびMage/Lightning（レベル10以上）
     df_merge_candidates = pd.concat([df_flak.assign(type="Flak"), df_mage_lightning.assign(type="Mage/Lightning")])
     df_merge_candidates = df_merge_candidates[df_merge_candidates['level'] >= 10]
     
     best_total_time = float("inf")
     best_plan = None
-    best_m = None
-    best_n = None
+    best_m, best_n = None, None
     best_merge_plan = None
-    best_direct_time1 = None
-    best_direct_time2 = None
+    best_selected_towers = None
+    best_direct_time1 = 0
+    best_direct_time2 = 0
     
-    # m: 初期レベルからの直接レベルアップで到達する中間レベル
-    # n: その後、mergeで到達するレベル（n==mならmerge不要）
+    # m: 直接レベルアップで到達する中間レベル（初期→m）
+    # n: その後mergeで到達するレベル（m→n）。n == mならmerge不要
     for m in range(initial_level, target_level + 1):
-        # 直接レベルアップ部分1：initial -> m
         time_direct1 = target_info[m]['time_culmative(days)'] - target_info[initial_level]['time_culmative(days)']
         for n in range(m, target_level + 1):
             if n == m:
-                # 直接レベルアップのみの場合（merge不要）
                 merge_time = 0
                 merge_plan = "なし"
+                selected_towers = {}
             else:
-                # mergeで m -> n を行う
                 required_rubble_merge = target_info[n]['culmative_rubble'] - target_info[m]['culmative_rubble']
                 required_xp_merge = target_info[n]['XP_culmative'] - target_info[m]['XP_culmative']
-                merge_plan, merge_time = merge_optimization(required_rubble_merge, required_xp_merge, max_num, ember_limit, df_merge_candidates)
+                merge_plan, merge_time, selected_towers = merge_optimization(required_rubble_merge, required_xp_merge, max_num, ember_limit, df_merge_candidates)
                 if merge_plan == "エンバーが足りません！":
-                    continue  # この (m, n) ではmergeが成立しない
-            # 直接レベルアップ部分2：n -> target_level
+                    continue  # この (m, n) ではmergeが成立しないのでスキップ
             time_direct2 = target_info[target_level]['time_culmative(days)'] - target_info[n]['time_culmative(days)']
             
             total_time = time_direct1 + merge_time + time_direct2
             
             if total_time < best_total_time:
                 best_total_time = total_time
-                best_m = m
-                best_n = n
+                best_m, best_n = m, n
                 best_merge_plan = merge_plan
+                best_selected_towers = selected_towers
                 best_direct_time1 = time_direct1
                 best_direct_time2 = time_direct2
-                best_plan = (
-                    f"【プラン候補】\n"
-                    f"① 直接レベルアップ：初期レベル {initial_level} から中間レベル {m} まで → 時間: {time_direct1:.2f} days\n"
-                    + (f"② 統合による補填：中間レベル {m} から {n} へ merge を実施 → 所要時間: {merge_time:.2f} days\n統合内容:\n{merge_plan}\n"
-                    if n > m else "② 統合による補填：不要（直接レベルアップのみ）\n")
-                    + f"③ 直接レベルアップ：中間レベル {n} から目標レベル {target_level} まで → 時間: {time_direct2:.2f} days\n"
-                    + f"総所要時間: {total_time:.2f} days"
-                )
+                
+                plan_lines = []
+                if time_direct1 > 0:
+                    plan_lines.append(f"① 直接レベルアップ：初期レベル {initial_level} から中間レベル {m} まで → 時間: {time_direct1:.2f} days")
+                if m < n:
+                    plan_lines.append(f"② 統合による補填：中間レベル {m} から {n} へ merge を実施 → 所要時間: {merge_time:.2f} days")
+                    plan_lines.append("　統合内容:")
+                    plan_lines.append(merge_plan)
+                if time_direct2 > 0:
+                    plan_lines.append(f"③ 直接レベルアップ：中間レベル {n} から目標レベル {target_level} まで → 時間: {time_direct2:.2f} days")
+                plan_lines.append(f"総所要時間: {total_time:.2f} days")
+                best_plan = "\n".join(plan_lines)
     
     if best_plan is None:
         return "エンバー上限の条件内でのプランが見つかりません！", pd.DataFrame()
     
-    # 統合前後のリソース比較（main tower の場合）
+    # リソース比較（ユーザー指定の形式）
     resource_comparison = pd.DataFrame({
-        "Resource": ["Rubble", "XP", "Time (days)"],
-        "Direct (初期→目標)": [
-            target_info[target_level]['culmative_rubble'] - target_info[initial_level]['culmative_rubble'],
-            target_info[target_level]['XP_culmative'] - target_info[initial_level]['XP_culmative'],
-            target_info[target_level]['time_culmative(days)'] - target_info[initial_level]['time_culmative(days)']
+        "Resource": ["ElectrumBar", "ElementalEmber", "CosmicCharge", "Time (days)"],
+        "Before Merge": [
+            df_target[df_target['level'] == target_level]['electrumBar_culmative'].values[0] - 
+            df_target[df_target['level'] == initial_level]['electrumBar_culmative'].values[0],
+            df_target[df_target['level'] == target_level]['elementalEmber_culmative'].values[0] - 
+            df_target[df_target['level'] == initial_level]['elementalEmber_culmative'].values[0],
+            df_target[df_target['level'] == target_level]['cosmicCharge_culmative'].values[0] - 
+            df_target[df_target['level'] == initial_level]['cosmicCharge_culmative'].values[0],
+            df_target[df_target['level'] == target_level]['time_culmative(days)'].values[0] - 
+            df_target[df_target['level'] == initial_level]['time_culmative(days)'].values[0]
         ],
-        "本プラン (Direct + Merge + Direct)": [
-            (target_info[m]['culmative_rubble'] - target_info[initial_level]['culmative_rubble']) +
-            (target_info[target_level]['culmative_rubble'] - target_info[best_n]['culmative_rubble']),
-            (target_info[m]['XP_culmative'] - target_info[initial_level]['XP_culmative']) +
-            (target_info[target_level]['XP_culmative'] - target_info[best_n]['XP_culmative']),
-            best_total_time
+        "After Merge": [
+            0,  
+            sum(selected_towers[(level, t_type)] *
+                df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['elementalEmber_culmative'].values[0]
+                for (level, t_type) in selected_towers) if selected_towers else 0,
+            sum(selected_towers[(level, t_type)] *
+                df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['cosmicCharge_culmative'].values[0]
+                for (level, t_type) in selected_towers) if selected_towers else 0,
+            sum(selected_towers[(level, t_type)] *
+                df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['time_culmative(days)'].values[0]
+                for (level, t_type) in selected_towers) if selected_towers else 0
         ]
     })
     
