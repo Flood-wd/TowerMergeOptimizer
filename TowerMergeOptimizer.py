@@ -64,7 +64,7 @@ def optimize_merge(tower_type, initial_level, target_level, max_num):
     model += pulp.lpSum([tower_vars[(level, t_type)] * df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['time_culmative(days)'].values[0] for level, t_type in tower_levels])
     
     # 制約1: rubble量が必要量を満たす
-    model += pulp.lpSum([tower_vars[(level, t_type)] * df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['culmative_rubble'].values[0] for level, t_type in tower_levels]) * 0.95 >= required_rubble
+    model += pulp.lpSum([tower_vars[(level, t_type)] * df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['culmative_rubble'].values[0] for level, t_type in tower_levels]) * 0.95 - 250 >= required_rubble
     
     # 制約2: XPが統合前より多いこと
     model += pulp.lpSum([tower_vars[(level, t_type)] * df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['XP_culmative'].values[0] for level, t_type in tower_levels]) >= required_xp
