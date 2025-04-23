@@ -11,9 +11,9 @@ def load_data():
     df_cosmic_oculus = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20Cosmic_Oculus.csv")
     df_crystal_pylon = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20Crystal_Pylon.csv")
     df_volt = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20Volt.csv")
-    df_archmage = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20ArchMage.csv.csv")
+    df_archmage = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20ArchMage.csv")
     df_flak = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20Flak.csv")
-    df_mage_lightning = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20Mage_Lightning.csv")
+    df_mage_lightning = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20Mage_lightning.csv")
     return df_cosmic_oculus, df_crystal_pylon, df_volt, df_archmage, df_flak, df_mage_lightning
 
 def optimize_merge(tower_type, initial_level, target_level, max_num, material_type,
