@@ -16,7 +16,7 @@ def load_data():
 df_cosmic_oculus, df_crystal_pylon, df_volt, df_archmage, df_flak, df_mage_lightning = load_data()
 
 # --- 最適化関数 ---
-def optimize_merge(tower_type, initial_level, target_level, max_num):
+def optimize_merge(tower_type, initial_level, target_level, max_num, material_type):
     """
     タワーの統合を最適化し、必要なタワーの組み合わせを計算
     
@@ -39,6 +39,21 @@ def optimize_merge(tower_type, initial_level, target_level, max_num):
         df_target = df_mage_lightning
     else:
         raise ValueError("tower_type must be one of 'Cosmic/Oculus', 'Crystal/Pylon', 'Volt', 'ArchMage', 'Flak', 'Mage/Lightning'")
+
+    if material_type == "ElementalEmber":
+        df_merge_candidates = pd.concat([
+            df_flak.assign(type="Flak"),
+            df_mage_lightning.assign(type="Mage/Lightning")
+        ])
+    elif material_type == "ElectrumBar":
+        df_merge_candidates = pd.concat([
+            df_crystal_pylon.assign(type="Crystal/Pylon"),
+            df_mage_lightning.assign(type="Mage/Lightning")
+        ])
+    elif material_type == "Lumber only":
+        df_merge_candidates = df_mage_lightning.assign(type="Mage/Lightning")
+    else:
+        raise ValueError("material_type must be one of 'ElementalEmber', 'ElectrumBar', 'Lumber only'")
     
     # 目標レベルのrubbleとXPを取得
     target_rubble = df_target[df_target['level'] == target_level]['culmative_rubble'].values[0]
@@ -103,17 +118,31 @@ def optimize_merge(tower_type, initial_level, target_level, max_num):
 # --- Streamlit UI ---
 st.title("Tower Merge Optimizer")
 
-# ユーザー入力
-tower_type = st.selectbox("タワーの種類を選択", [ "Cosmic/Oculus", "Crystal/Pylon", "Volt", "ArchMage", "Flak", "Mage/Lightning"])
-initial_level = st.number_input("現在のレベル", min_value=10, step=1)
-target_level = st.number_input("目標レベル", min_value=11, step=1)
-max_num = st.number_input("最大使用タワー数", min_value=1, max_value=50, value=12)
+# タワーの種類を選択
+tower_type = st.selectbox("タワーの種類を選択", [
+    "Cosmic/Oculus", "Crystal/Pylon", "Volt", "ArchMage", "Flak", "Mage/Lightning"
+])
 
+# 同じ段に「現在のレベル」と「目標レベル」
+col1, col2 = st.columns(2)
+with col1:
+    initial_level = st.number_input("現在のレベル", min_value=10, step=1)
+with col2:
+    target_level = st.number_input("目標レベル", min_value=11, step=1)
+
+# 同じ段に「最大使用タワー数」と「素材タイプ」
+col3, col4 = st.columns(2)
+with col3:
+    max_num = st.number_input("最大使用タワー数", min_value=1, max_value=50, value=12)
+with col4:
+    material_type = st.selectbox("素材タイプを選択", ["ElementalEmber", "ElectrumBar", "Lumber only"])
+
+# 実行ボタン
 if st.button("最適化を実行"):
-    tower_output, resource_comparison = optimize_merge(tower_type, initial_level, target_level, max_num)
-    
+    tower_output, resource_comparison = optimize_merge(tower_type, initial_level, target_level, max_num, material_type)
+
     st.subheader("最適なタワーの組み合わせ")
     st.text(tower_output)
-    
+
     st.subheader("リソース比較")
     st.dataframe(resource_comparison)
