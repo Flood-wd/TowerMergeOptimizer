@@ -103,7 +103,7 @@ def optimize_merge(tower_type, initial_level, target_level, max_num, material_ty
             df_target[df_target['level'] == target_level]['time_culmative(days)'].values[0] - df_target[df_target['level'] == initial_level]['time_culmative(days)'].values[0]
         ],
         "After Merge": [
-            0,  
+            sum(selected_towers[(level, t_type)] * df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['electrumBar_culmative'].values[0] for (level, t_type) in selected_towers),
             sum(selected_towers[(level, t_type)] * df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['elementalEmber_culmative'].values[0] for (level, t_type) in selected_towers),
             sum(selected_towers[(level, t_type)] * df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['cosmicCharge_culmative'].values[0] for (level, t_type) in selected_towers),
             sum(selected_towers[(level, t_type)] * df_merge_candidates[(df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)]['time_culmative(days)'].values[0] for (level, t_type) in selected_towers)
