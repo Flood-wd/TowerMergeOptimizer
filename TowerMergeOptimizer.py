@@ -54,6 +54,7 @@ def optimize_merge(tower_type, initial_level, target_level, max_num, material_ty
         df_merge_candidates = df_mage_lightning.assign(type="Mage/Lightning")
     else:
         raise ValueError("material_type must be one of 'ElementalEmber', 'ElectrumBar', 'Lumber only'")
+    df_merge_candidates = df_merge_candidates[df_merge_candidates['level'] >= 10]
     
     # 目標レベルのrubbleとXPを取得
     target_rubble = df_target[df_target['level'] == target_level]['culmative_rubble'].values[0]
@@ -63,10 +64,6 @@ def optimize_merge(tower_type, initial_level, target_level, max_num, material_ty
     target_xp = df_target[df_target['level'] == target_level]['XP_culmative'].values[0]
     initial_xp = df_target[df_target['level'] == initial_level]['XP_culmative'].values[0]
     required_xp = target_xp - initial_xp
-    
-    # FlakおよびMage/Lightningタワーを統合素材として使用（レベル10以上のものを抽出）
-    df_merge_candidates = pd.concat([df_flak.assign(type="Flak"), df_mage_lightning.assign(type="Mage/Lightning")])
-    df_merge_candidates = df_merge_candidates[df_merge_candidates['level'] >= 10]
     
     # 最適化モデルの作成（整数計画問題）
     model = pulp.LpProblem("TowerMergeOptimization", pulp.LpMinimize)
