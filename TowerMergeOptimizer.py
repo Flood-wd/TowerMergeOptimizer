@@ -50,8 +50,6 @@ def optimize_merge(tower_type, initial_level, target_level, max_num, material_ty
             df_crystal_pylon.assign(type="Crystal/Pylon"),
             df_mage_lightning.assign(type="Mage/Lightning")
         ])
-    elif material_type == "Lumber only":
-        df_merge_candidates = df_mage_lightning.assign(type="Mage/Lightning")
     else:
         raise ValueError("material_type must be one of 'ElementalEmber', 'ElectrumBar', 'Lumber only'")
     df_merge_candidates = df_merge_candidates[df_merge_candidates['level'] >= 10]
@@ -132,7 +130,7 @@ col3, col4 = st.columns(2)
 with col3:
     max_num = st.number_input("最大使用タワー数", min_value=1, max_value=50, value=12)
 with col4:
-    material_type = st.selectbox("素材タイプを選択", ["ElementalEmber", "ElectrumBar", "Lumber only"])
+    material_type = st.selectbox("素材タイプを選択", ["ElementalEmber", "ElectrumBar"])
 
 # 実行ボタン
 if st.button("最適化を実行"):
