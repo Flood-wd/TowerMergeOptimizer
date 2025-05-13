@@ -13,7 +13,7 @@ def load_data():
     df_volt = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20Volt.csv")
     df_archmage = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20ArchMage.csv")
     df_flak = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20Flak.csv")
-    df_mage_lightning = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20Mage_lightning.csv")
+    df_mage_lightning = pd.read_csv("https://raw.githubusercontent.com/Flood-wd/TowerMergeOptimizer/main/Data_.xlsx%20-%20Mage_lightnいいing.csv")
     return df_cosmic_oculus, df_crystal_pylon, df_volt, df_archmage, df_flak, df_mage_lightning
 
 def optimize_merge(tower_type, initial_level, target_level, max_num, material_type,
@@ -151,7 +151,7 @@ with col2:
 
 col3, col4 = st.columns(2)
 with col3:
-    max_num = st.number_input("最大使用タワー数", min_value=1, max_value=50, value=12)
+    max_num = st.number_input("最大使用タワー数", min_value=1, max_value=50, value=2)
 with col4:
     material_type = st.selectbox("素材タイプを選択", ["ElementalEmber", "ElectrumBar"])
 
