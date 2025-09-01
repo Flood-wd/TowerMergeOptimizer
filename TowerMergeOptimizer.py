@@ -129,7 +129,24 @@ def optimize_merge(tower_type, initial_level, target_level, max_num, material_ty
         ]
     })
 
-    return tower_output, resource_comparison
+        # ---- 追記：ラブル使用効率（分子/分母） ----
+    rubble_required_direct = required_rubble  # 分子
+
+    rubble_from_merges = sum(  # 分母（素材タワーの素のラブル合計）
+        selected_towers[(level, t_type)] * df_merge_candidates[
+            (df_merge_candidates['level'] == level) & (df_merge_candidates['type'] == t_type)
+        ]['cumulative_rubble'].values[0]
+        for (level, t_type) in selected_towers
+    ) if selected_towers else 0.0
+
+    if rubble_from_merges > 0:
+        rubble_usage_efficiency = rubble_required_direct / rubble_from_merges
+    else:
+        rubble_usage_efficiency = None
+
+    return tower_output, resource_comparison, rubble_usage_efficiency
+
+
 
 # ------------------------------
 # Streamlit UI（フロントエンド）
@@ -156,7 +173,7 @@ with col4:
     material_type = st.selectbox("素材タイプを選択", ["ElementalEmber", "ElectrumBar"])
 
 if st.button("最適化を実行"):
-    tower_output, resource_comparison = optimize_merge(
+    tower_output, resource_comparison, rubble_usage_efficiency = optimize_merge(
         tower_type, initial_level, target_level, max_num, material_type,
         df_cosmic_oculus, df_crystal_pylon, df_volt, df_archmage, df_flak, df_mage_lightning
     )
@@ -166,4 +183,11 @@ if st.button("最適化を実行"):
 
     st.subheader("リソース比較")
     st.dataframe(resource_comparison)
+
+    if rubble_usage_efficiency is not None:
+        st.subheader("リソース活用効率")
+        st.write(f"リソース活用効率：{rubble_usage_efficiency*100:.1f}%")
+    else:
+        st.subheader("リソース活用効率")
+        st.write("リソース活用効率：—")
 
